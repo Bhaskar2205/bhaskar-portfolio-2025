@@ -1,10 +1,152 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
+}
+
+/* Light: warm paper with a Jaipur-pink accent */
+:root {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --ink: #16141c;
+  --muted: #5e5a68;
+  --line: #e8e3dc;
+  --accent: #b8336a;
+  --accent-soft: #f9e8ef;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0e13;
+    --surface: #17161d;
+    --ink: #f4f1ec;
+    --muted: #a6a1ad;
+    --line: #2a2832;
+    --accent: #f17ea6;
+    --accent-soft: #2a1820;
+    color-scheme: dark;
+  }
+}
+
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
 }
 
 body {
-  background: #0f172a;
-  color: white;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Above-the-fold entrance: pure CSS so the hero never waits on JavaScript */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-in {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* "How I run a product": a highlight travels Discover → Grow on a loop.
+   No fill-mode, so each step stays neutral until its own delay starts. */
+@keyframes stage-glow {
+  0%,
+  17% {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    transform: scale(1.1);
+  }
+  22%,
+  100% {
+    background: var(--bg);
+    color: var(--ink);
+    border-color: var(--line);
+    transform: scale(1);
+  }
+}
+
+.stage-dot {
+  animation: stage-glow 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-in,
+  .stage-dot {
+    animation: none;
+  }
+}
+
+/* "Download résumé" prints the page as a clean, light, compact document */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm 13mm;
+  }
+
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --ink: #111111;
+    --muted: #3f3f46;
+    --line: #dddddd;
+    --accent: #9d2a58;
+    --accent-soft: #ffffff;
+    color-scheme: light;
+  }
+
+  html {
+    font-size: 10.5px;
+  }
+
+  body {
+    background: #ffffff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Reveal animations start hidden; force everything visible on paper */
+  * {
+    opacity: 1 !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .print-avoid-break {
+    break-inside: avoid;
+  }
 }

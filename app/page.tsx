@@ -1,547 +1,499 @@
-"use client";
+import { FaLinkedin } from "react-icons/fa";
+import { FiArrowUpRight, FiDownload, FiMail } from "react-icons/fi";
+import { PrintButton, Reveal } from "./components/Reveal";
+import { CountUp, Roadmap, ScrollProgress } from "./components/Animated";
+import {
+  caseStudies,
+  certifications,
+  education,
+  engineering,
+  languages,
+  playbook,
+  profile,
+  type Role,
+  roadmap,
+  skills,
+  snapshot,
+  stats,
+  strengths,
+  ventures,
+} from "./data/resume";
 
-import { motion } from "framer-motion";
-import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
-import { useTypewriter, Cursor } from "react-simple-typewriter";
-import { memo } from "react";
-import { Analytics } from "@vercel/analytics/next"
+const navLinks = [
+  { href: "#roadmap", label: "Roadmap" },
+  { href: "#strengths", label: "Strengths" },
+  { href: "#experience", label: "Experience" },
+  { href: "#work", label: "Case studies" },
+  { href: "#skills", label: "Skills" },
+  { href: "#education", label: "Education" },
+];
 
+const container = "mx-auto w-full max-w-6xl px-5 md:px-8";
+const eyebrow = "text-xs font-semibold uppercase tracking-[0.18em]";
+const primaryBtn =
+  "inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-bg transition hover:opacity-85";
+const secondaryBtn =
+  "inline-flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-3 text-sm font-medium text-ink transition hover:border-ink/40";
 
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  show: { opacity: 1, y: 0 },
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: profile.name,
+  jobTitle: profile.title,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Jaipur",
+    addressCountry: "IN",
+  },
+  sameAs: [profile.linkedin, profile.github],
+  knowsAbout: [
+    "Product strategy",
+    "Product management",
+    "Product marketing",
+    "Go-to-market strategy",
+    "B2B SaaS",
+    "Generative AI",
+  ],
 };
 
-const CircularSkill = memo(
-  ({ name, percent }: { name: string; percent: number }) => {
-    return (
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        className="bg-gray-800 p-6 rounded-xl flex flex-col items-center"
-      >
-        <div className="relative w-28 h-28">
-          <svg className="w-full h-full">
-            <circle
-              className="text-gray-700"
-              strokeWidth="8"
-              stroke="currentColor"
-              fill="transparent"
-              r="45"
-              cx="50%"
-              cy="50%"
-            />
-            <circle
-              strokeWidth="8"
-              strokeDasharray={280}
-              strokeDashoffset={280 - (280 * percent) / 100}
-              strokeLinecap="round"
-              stroke="cyan"
-              fill="transparent"
-              r="45"
-              cx="50%"
-              cy="50%"
-            />
-          </svg>
+function SectionHeading({
+  kicker,
+  title,
+  intro,
+}: {
+  kicker: string;
+  title: string;
+  intro?: string;
+}) {
+  return (
+    <Reveal className="mb-10 max-w-2xl md:mb-14 print:mb-3">
+      <p className={`${eyebrow} text-accent`}>{kicker}</p>
+      <h2 className="mt-3 font-serif text-4xl leading-[1.05] tracking-tight md:text-5xl print:mt-1 print:text-3xl">
+        {title}
+      </h2>
+      {intro && (
+        <p className="mt-4 text-lg leading-relaxed text-muted print:hidden">{intro}</p>
+      )}
+    </Reveal>
+  );
+}
 
-          <span className="absolute inset-0 flex items-center justify-center text-lg font-bold">
-            {percent}%
-          </span>
+function RoleItem({ r }: { r: Role }) {
+  return (
+    <Reveal className="print-avoid-break">
+      <article className="grid gap-3 border-t border-line py-8 md:grid-cols-[13rem_1fr] md:gap-10 print:grid-cols-[9rem_1fr] print:gap-6 print:py-3">
+        <div className="text-sm text-muted">
+          <p className="whitespace-nowrap font-medium tabular-nums text-ink">{r.period}</p>
+          <p className="mt-1">{r.place}</p>
         </div>
-
-        <p className="mt-3 text-gray-300">{name}</p>
-      </motion.div>
-    );
-  }
-);
-
+        <div>
+          <h4 className="text-xl font-semibold tracking-tight">
+            {r.role} <span className="font-normal text-muted">·</span>{" "}
+            <span className="text-accent">{r.company}</span>
+          </h4>
+          <p className="mt-1 text-muted">{r.context}</p>
+          <ul className="mt-4 space-y-2.5 print:mt-2 print:space-y-1">
+            {r.points.map((p) => (
+              <li
+                key={p}
+                className="relative pl-5 leading-relaxed before:absolute before:left-0 before:top-[0.65em] before:h-1.5 before:w-1.5 before:rounded-full before:bg-accent"
+              >
+                {p}
+              </li>
+            ))}
+          </ul>
+          {r.link && (
+            <a
+              href={r.link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline print:hidden"
+            >
+              {r.link.label} <FiArrowUpRight aria-hidden />
+            </a>
+          )}
+        </div>
+      </article>
+    </Reveal>
+  );
+}
 
 export default function Home() {
-  const [text] = useTypewriter({
-    words: [
-      "Full Stack Developer",
-      "React Developer",
-      "IT Consultant",
-      "GenAI Devloper",
-      "Tech Enthusiast",
-      "Problem Solver",
-    ],
-    loop: true,
-    delaySpeed: 1500,
-  });
-
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900 px-6 md:px-24 py-12">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ScrollProgress />
 
-      {/* HERO SECTION */}
-      <motion.section
-        initial="hidden"
-        animate="show"
-        variants={fadeUp}
-        transition={{ duration: 0.8 }}
-        className="text-center mt-16"
-      >
-        <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 text-transparent bg-clip-text">
-          Bhaskar Mamoria
-        </h1>
-
-        <h2 className="text-xl mt-6 text-gray-300">
-          {text}
-          <Cursor />
-        </h2>
-
-        <div className="flex justify-center gap-8 mt-6 text-2xl text-gray-300">
-          <a href="mailto:bhaskarmamoria55@gmail.com">
-            <FaEnvelope />
+      {/* NAV */}
+      <header className="sticky top-0 z-40 border-b border-line/70 bg-bg/80 backdrop-blur-md print:hidden">
+        <div className={`${container} flex h-16 items-center justify-between gap-4`}>
+          <a href="#top" className="font-serif text-2xl leading-none">
+            Bhaskar<span className="text-accent">.</span>
           </a>
-          <a
-            href="https://linkedin.com/in/bhaskar-mamoria-87295818b"
-            target="_blank"
-          >
-            <FaLinkedin />
-          </a>
-          <a href="https://github.com" target="_blank">
-            <FaGithub />
-          </a>
+          <nav aria-label="Sections" className="hidden items-center gap-7 text-sm text-muted lg:flex">
+            {navLinks.map((l) => (
+              <a key={l.href} href={l.href} className="transition hover:text-ink">
+                {l.label}
+              </a>
+            ))}
+          </nav>
+          <PrintButton className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium transition hover:border-ink/40">
+            <FiDownload aria-hidden /> Download résumé
+          </PrintButton>
         </div>
-      </motion.section>
+      </header>
 
-      {/* ABOUT */}
-      <motion.section
-        className="mt-24 max-w-5xl mx-auto"
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={fadeUp}
-        transition={{ duration: 0.7 }}
-      >
-        <h2 className="text-3xl font-semibold text-cyan-400">About Me</h2>
+      <main id="top" className="relative isolate overflow-x-clip">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[620px] bg-[radial-gradient(55%_60%_at_15%_0%,var(--accent-soft),transparent_70%)] print:hidden"
+        />
 
-        <p className="mt-4 text-gray-300 leading-relaxed">
-          I am a Full-Stack Software Developer with over 3 years of hands-on experience building
-          scalable backend APIs, modern frontend interfaces, and AI-driven integrations.
-          My expertise lies in React.js, Node.js, TypeScript, and cloud technologies.
+        {/* HERO */}
+        <section className={`${container} pb-16 pt-14 md:pb-24 md:pt-24 print:pb-4 print:pt-0`}>
+          <div className="grid items-end gap-12 lg:grid-cols-[1.45fr_1fr] print:gap-6">
+            <div className="hero-in">
+              <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-sm text-muted print:hidden">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-60 motion-safe:animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+                </span>
+                Open to product roles
+              </p>
 
-          I focus on delivering high-performance applications with clean architecture,
-          seamless user experiences, and maintainable code. I have worked across enterprise
-          applications, client projects, and personal innovations – always aiming to create
-          impactful digital solutions.
-        </p>
-      </motion.section>
+              <h1 className="mt-6 font-serif text-6xl leading-[0.95] tracking-tight sm:text-7xl md:text-8xl print:mt-0 print:text-5xl">
+                Bhaskar <span className="italic">Mamoria</span>
+              </h1>
 
-     {/* NEXT-GEN EXPERIENCE TIMELINE */}
-<motion.section
-  className="mt-32 max-w-6xl mx-auto"
-  initial="hidden"
-  whileInView="show"
-  viewport={{ once: true, margin: "-100px" }}
-  variants={{
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  }}
->
-  <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-14 text-center">
-    Professional Journey
-  </h2>
+              <p className="mt-5 text-xl font-semibold tracking-tight md:text-2xl print:mt-2">
+                {profile.title}{" "}
+                <span className="font-normal text-muted">· {profile.focus}</span>
+              </p>
 
-  <div className="relative">
+              <p className="mt-2 hidden text-sm text-muted print:block">
+                {profile.email} · {profile.linkedinLabel} · {profile.location}
+              </p>
 
-    {/* Glowing Vertical Line */}
-    <div className="absolute left-6 top-0 h-full w-[3px] bg-gradient-to-b from-cyan-400 via-purple-500 to-cyan-400 animate-pulse"></div>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted print:mt-3 print:max-w-none print:text-ink">
+                {profile.pitch}
+              </p>
 
-    <div className="space-y-16">
-
-      {[
-        {
-          title: "Software Developer – Infoobjects Pvt Ltd",
-          duration: "Nov 2023 – Present | Jaipur",
-          points: [
-            "Engineered backend APIs improving response time by 30%",
-            "Reduced system errors by 15% through optimized services",
-            "Integrated enterprise-grade third-party services",
-            "Built scalable and reusable React components",
-          ],
-          color: "from-cyan-400 to-blue-500",
-        },
-        {
-          title: "Associate Software Developer – Nagarro",
-          duration: "Apr 2022 – Jul 2023 | Jaipur",
-          points: [
-            "Developed enterprise applications using React & TypeScript",
-            "Enhanced UI/UX performance by 20%",
-            "Delivered multiple production-grade builds",
-            "Resolved critical client issues with optimized solutions",
-          ],
-          color: "from-purple-400 to-pink-500",
-        },
-        {
-          title: "Frontend Developer Intern – FiftyFive Technologies",
-          duration: "Apr 2021 – Jul 2021 | Jaipur",
-          points: [
-            "Designed UI components using React.js & React Native",
-            "Implemented responsive mobile-first designs",
-            "Improved cross-device compatibility",
-            "Enhanced usability for client applications",
-          ],
-          color: "from-green-400 to-cyan-400",
-        },
-      ].map((job, index) => (
-        <motion.div
-          key={index}
-          variants={{
-            hidden: { opacity: 0, x: -80 },
-            show: { opacity: 1, x: 0 },
-          }}
-          transition={{ type: "spring", stiffness: 120 }}
-          className="relative ml-16 group"
-        >
-          {/* Floating Dot */}
-          <motion.div
-            whileHover={{ scale: 1.3 }}
-            className={`absolute -left-[56px] top-2 w-6 h-6 rounded-full bg-gradient-to-r ${job.color} shadow-lg shadow-cyan-500/50`}
-          ></motion.div>
-
-          {/* Card */}
-          <motion.div
-            whileHover={{ y: -8 }}
-            className="p-6 md:p-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-lg hover:bg-white/10 transition-all duration-300"
-          >
-            <h3 className="text-2xl font-semibold text-white">
-              {job.title}
-            </h3>
-
-            <p className="text-gray-400 mt-1">{job.duration}</p>
-
-            <ul className="mt-4 space-y-2">
-              {job.points.map((p, i) => (
-                <li
-                  key={i}
-                  className="text-gray-300 flex items-start gap-2"
+              <div className="mt-8 flex flex-wrap gap-3 print:hidden">
+                <a href={`mailto:${profile.email}`} className={primaryBtn}>
+                  <FiMail aria-hidden /> Email me
+                </a>
+                <a
+                  href={profile.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={secondaryBtn}
                 >
-                  <span className="text-cyan-400">▹</span>
-                  {p}
+                  <FaLinkedin aria-hidden /> LinkedIn
+                </a>
+              </div>
+            </div>
+
+            <div className="hero-in print:hidden" style={{ animationDelay: "100ms" }}>
+              <aside className="rounded-2xl border border-line bg-surface p-6 shadow-[0_24px_60px_-36px_rgba(22,20,28,0.35)] md:p-7">
+                <p className={`${eyebrow} text-muted`}>At a glance</p>
+                <dl className="mt-4 divide-y divide-line">
+                  {snapshot.map((s) => (
+                    <div key={s.label} className="flex items-baseline justify-between gap-6 py-3">
+                      <dt className="text-sm text-muted">{s.label}</dt>
+                      <dd className="text-right font-medium">{s.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className={`${eyebrow} mt-6 text-muted`}>Open to</p>
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {profile.openTo.map((r) => (
+                    <li
+                      key={r}
+                      className="rounded-full bg-accent-soft px-3 py-1 text-sm font-medium text-accent"
+                    >
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            </div>
+          </div>
+
+          {/* IMPACT STATS */}
+          <div className="hero-in" style={{ animationDelay: "180ms" }}>
+            <ul className="mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-4 print:mt-4 print:grid-cols-4">
+              {stats.map((s) => (
+                <li key={s.label} className="bg-surface p-5 md:p-7 print:p-3">
+                  <p className="font-serif text-5xl leading-none tracking-tight md:text-6xl print:text-3xl">
+                    <CountUp value={s.value} />
+                  </p>
+                  <p className="mt-3 text-sm leading-snug text-muted print:mt-1">{s.label}</p>
                 </li>
               ))}
             </ul>
-
-            {/* Bottom Glow Line */}
-            <div className="h-[2px] w-0 group-hover:w-full transition-all duration-500 bg-gradient-to-r from-cyan-400 to-purple-500 mt-4"></div>
-          </motion.div>
-        </motion.div>
-      ))}
-    </div>
-  </div>
-</motion.section>
-
-
-      {/* NEXT GEN EDUCATION SECTION */}
-<motion.section
-  className="mt-32 max-w-6xl mx-auto"
-  initial="hidden"
-  whileInView="show"
-  viewport={{ once: true, margin: "-100px" }}
-  variants={{
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  }}
->
-  <h2 className="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
-    Academic Journey
-  </h2>
-
-  <p className="text-center text-gray-400 mt-2">
-    AI-powered learning path and formal education milestones
-  </p>
-
-  <div className="mt-12 grid md:grid-cols-3 gap-8">
-
-    {[
-      {
-        degree: "MS in Computer Science – Gen AI",
-        institute: "Massachusetts Institute of Technology",
-        year: "2025",
-        score: "CGPA 8.9",
-        glow: "from-cyan-400 to-blue-500",
-        percent: 90,
-      },
-      {
-        degree: "Master of Business Administration",
-        institute: "Manipal University Jaipur",
-        year: "2025",
-        score: "CGPA 7.98",
-        glow: "from-purple-400 to-pink-500",
-        percent: 80,
-      },
-      {
-        degree: "B.Tech – Computer Science",
-        institute: "JECRC University Jaipur",
-        year: "2018 – 2022",
-        score: "75.51%",
-        glow: "from-green-400 to-cyan-400",
-        percent: 75,
-      },
-    ].map((edu, index) => (
-      <motion.div
-        key={index}
-        variants={{
-          hidden: { opacity: 0, y: 60 },
-          show: { opacity: 1, y: 0 },
-        }}
-        whileHover={{ y: -10 }}
-        className="relative group p-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-lg hover:bg-white/10 transition-all duration-300"
-      >
-        {/* Top Glow Bar */}
-        <div
-          className={`h-[3px] w-full absolute top-0 left-0 bg-gradient-to-r ${edu.glow}`}
-        ></div>
-
-        <h3 className="text-xl font-semibold mt-2">{edu.degree}</h3>
-
-        <p className="text-gray-400 mt-1">{edu.institute}</p>
-
-        <div className="flex justify-between mt-4 text-gray-300">
-          <span>{edu.year}</span>
-          <span className="font-semibold">{edu.score}</span>
-        </div>
-
-        {/* AI STYLE PROGRESS RING */}
-        <div className="flex justify-center mt-6">
-          <div className="relative w-24 h-24">
-            <svg className="w-full h-full">
-              <circle
-                className="text-gray-700"
-                strokeWidth="6"
-                stroke="currentColor"
-                fill="transparent"
-                r="38"
-                cx="50%"
-                cy="50%"
-              />
-
-              <circle
-                strokeWidth="6"
-                strokeDasharray={240}
-                strokeDashoffset={240 - (240 * edu.percent) / 100}
-                strokeLinecap="round"
-                stroke="cyan"
-                fill="transparent"
-                r="38"
-                cx="50%"
-                cy="50%"
-              />
-            </svg>
-
-            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
-              {edu.percent}%
-            </span>
           </div>
-        </div>
+        </section>
 
-        {/* Bottom Hover Glow */}
-        <div className="h-[2px] w-0 group-hover:w-full transition-all duration-500 bg-gradient-to-r from-cyan-400 to-purple-500 mt-6"></div>
-      </motion.div>
-    ))}
+        {/* CAREER ROADMAP */}
+        <section id="roadmap" className={`${container} py-16 md:py-24 print:hidden`}>
+          <SectionHeading
+            kicker="Career roadmap"
+            title="My career, shipped in releases."
+            intro="Each version added a new capability. The next one ships with your team."
+          />
+          <Roadmap items={roadmap} />
+        </section>
 
-  </div>
-</motion.section>
+        {/* STRENGTHS */}
+        <section id="strengths" className={`${container} py-16 md:py-24 print:py-3`}>
+          <SectionHeading
+            kicker="What I bring"
+            title="Strategy, story and the technical depth to ship it."
+            intro="Each strength is backed by something I've actually done."
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4 print:gap-2">
+            {strengths.map((s, i) => (
+              <Reveal key={s.title} delay={i * 0.06} className="print-avoid-break">
+                <article className="flex h-full flex-col rounded-2xl border border-line bg-surface p-6 print:p-3">
+                  <p className="font-serif text-2xl italic text-accent">0{i + 1}</p>
+                  <h3 className="mt-3 text-lg font-semibold tracking-tight">{s.title}</h3>
+                  <p className="mt-2 leading-relaxed text-muted">{s.body}</p>
+                  <p className="mt-auto border-t border-line pt-4 text-sm font-medium print:pt-2">
+                    <span className="text-accent">Proof · </span>
+                    {s.proof}
+                  </p>
+                </article>
+              </Reveal>
+            ))}
+          </div>
 
-
-{/* ADVANCED PROJECT SHOWCASE */}
-<motion.section
-  className="mt-32 max-w-6xl mx-auto"
-  initial="hidden"
-  whileInView="show"
-  viewport={{ once: true, margin: "-100px" }}
-  variants={{
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  }}
->
-  <h2 className="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
-    Featured Projects
-  </h2>
-
-  <p className="text-center text-gray-400 mt-2">
-    Real-world applications and personal innovations
-  </p>
-
-  <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-    {[
-      {
-        name: "AI Resume Analyzer",
-        desc: "GenAI-powered tool that analyzes resumes and provides smart feedback using NLP models.",
-        tech: ["React", "Node.js", "OpenAI", "MongoDB"],
-        github: "https://github.com/Bhaskar2205",
-        color: "from-cyan-400 to-blue-500",
-      },
-      {
-        name: "PINK CITY MARKETING NEXT GEN AI WEBSITE",
-        desc: "Pink City Blog is A Next Geneation AI powered marketing platform built with React, Firebase, Tailwind CSS, and WebSockets for real-time updates. And more changes as being deployed soon.",
-        github: "https://github.com/Bhaskar2205",
-        demo: "https://pink-city-blog.vercel.app/",
-        tech: ["React", "Firebase", "Tailwind", "WebSockets"],
-        color: "from-purple-400 to-pink-500",
-      },
-      {
-        name: "Ekart Platform",
-        desc: "E-commerce platform built with React & Firebase featuring real-time data sync.",
-        tech: ["React", "Firebase", "Auth", "Cloud DB"],
-      
-        color: "from-green-400 to-cyan-400",
-      },
-      {
-        name: "Sudoku Solver",
-        desc: "Interactive Sudoku game with dynamic puzzle generation and validation engine.",
-        tech: ["JavaScript", "Algorithms", "UI/UX"],
-        
-        color: "from-yellow-400 to-orange-500",
-      },
-      {
-        name: "Portfolio Generator",
-        desc: "Automated portfolio creator that generates resume websites from JSON data.",
-        tech: ["Next.js", "Framer Motion", "Tailwind"],
-        
-        color: "from-pink-400 to-red-500",
-      },
-      {
-        name: "Task Automation Bot",
-        desc: "Node.js automation scripts to streamline repetitive development workflows.",
-        tech: ["Node.js", "Automation", "APIs"],
-        
-        color: "from-indigo-400 to-purple-500",
-      },
-    ].map((project, index) => (
-      <motion.div
-        key={index}
-        variants={{
-          hidden: { opacity: 0, y: 60 },
-          show: { opacity: 1, y: 0 },
-        }}
-        whileHover={{ y: -10, scale: 1.02 }}
-        className="relative group rounded-2xl border border-white/10 bg-white/5 backdrop-blur-lg hover:bg-white/10 transition-all duration-300 p-6"
-      >
-        {/* Top Gradient Line */}
-        <div
-          className={`absolute top-0 left-0 h-[3px] w-full bg-gradient-to-r ${project.color}`}
-        ></div>
-
-        <h3 className="text-xl font-semibold mt-2">{project.name}</h3>
-
-        <p className="text-gray-400 mt-2 text-sm leading-relaxed">
-          {project.desc}
-        </p>
-
-        {/* TECH STACK */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {project.tech.map((t, i) => (
-            <span
-              key={i}
-              className="px-3 py-1 text-xs rounded-full bg-gray-800 text-cyan-300"
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-
-        {/* ACTION BUTTONS */}
-        <div className="mt-6 flex gap-4">
-          <a
-            href={project.github}
-            target="_blank"
-            className="px-4 py-2 text-sm rounded-lg bg-gray-800 hover:bg-gray-700 transition"
-          >
-            GitHub
-          </a>
-
-          <a
-            href={project.demo}
-            target="_blank"
-            className="px-4 py-2 text-sm rounded-lg bg-cyan-600 hover:bg-cyan-700 transition"
-          >
-            Live Demo
-          </a>
-        </div>
-
-        {/* Bottom Hover Glow */}
-        <div className="h-[2px] w-0 group-hover:w-full transition-all duration-500 bg-gradient-to-r from-cyan-400 to-purple-500 mt-6"></div>
-      </motion.div>
-    ))}
-  </div>
-</motion.section>
-
-
-
-
-
-
-
-
-
-
-
-
-
-      {/* TECHNICAL SKILLS */}
-      <motion.section className="mt-24 max-w-5xl mx-auto">
-        <h2 className="text-3xl font-semibold text-purple-400">Technical Skills</h2>
-
-        <div className="grid md:grid-cols-4 gap-6 mt-8">
-          <CircularSkill name="React.js" percent={90} />
-          <CircularSkill name="Node.js" percent={85} />
-          <CircularSkill name="TypeScript" percent={80} />
-          <CircularSkill name="MongoDB" percent={75} />
-          <CircularSkill name="Firebase" percent={80} />
-          <CircularSkill name="Docker" percent={70} />
-          <CircularSkill name="TailwindCSS" percent={85} />
-          <CircularSkill name="Git" percent={90} />
-        </div>
-      </motion.section>
-
-      {/* LANGUAGE BARS */}
-      <motion.section className="mt-24 max-w-5xl mx-auto">
-        <h2 className="text-3xl font-semibold text-cyan-400">Languages</h2>
-
-        <div className="mt-8 space-y-6">
-          {[
-            { name: "English", level: 95 },
-            { name: "Hindi", level: 100 },
-          ].map((lang) => (
-            <div key={lang.name}>
-              <div className="flex justify-between text-gray-300">
-                <span>{lang.name}</span>
-                <span>{lang.level}%</span>
+          <Reveal className="mt-6 print:hidden">
+            <div className="rounded-2xl border border-line bg-surface p-6 md:p-8">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="text-lg font-semibold tracking-tight">How I run a product</h3>
+                <p className="text-sm text-muted">The same loop, every time.</p>
               </div>
+              <ol className="mt-6 grid gap-5 md:grid-cols-5 md:gap-4">
+                {playbook.map((s, i) => (
+                  <li key={s.step}>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="stage-dot grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line bg-bg text-sm font-semibold"
+                        style={{ animationDelay: `${i * 1.6}s` }}
+                      >
+                        {i + 1}
+                      </span>
+                      <span className="font-semibold">{s.step}</span>
+                      {i < playbook.length - 1 && (
+                        <span aria-hidden className="hidden h-px flex-1 bg-line md:block" />
+                      )}
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-muted md:pr-3">{s.body}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </Reveal>
+        </section>
 
-              <div className="w-full bg-gray-700 h-3 rounded mt-2">
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${lang.level}%` }}
-                  transition={{ duration: 1 }}
-                  className="bg-cyan-400 h-3 rounded"
-                ></motion.div>
+        {/* EXPERIENCE */}
+        <section id="experience" className={`${container} py-16 md:py-24 print:py-3`}>
+          <SectionHeading
+            kicker="Experience"
+            title="From building products to leading them."
+            intro="Two products I led end to end, backed by four years of engineering inside enterprise product teams."
+          />
+
+          <h3 className={`${eyebrow} mb-2 text-muted`}>Product ventures</h3>
+          <div className="mb-14 border-b border-line print:mb-4">
+            {ventures.map((r) => (
+              <RoleItem key={r.company} r={r} />
+            ))}
+          </div>
+
+          <h3 className={`${eyebrow} mb-2 text-muted`}>Product engineering</h3>
+          <div className="border-b border-line">
+            {engineering.map((r) => (
+              <RoleItem key={r.company} r={r} />
+            ))}
+          </div>
+        </section>
+
+        {/* CASE STUDIES */}
+        <section id="work" className={`${container} py-16 md:py-24 print:hidden`}>
+          <SectionHeading
+            kicker="Case studies"
+            title="Problems I've taken on."
+            intro="Each one starts with the user problem, then what I did about it."
+          />
+          <div className="grid gap-5 md:grid-cols-3">
+            {caseStudies.map((c, i) => (
+              <Reveal key={c.name} delay={i * 0.06}>
+                <article className="flex h-full flex-col rounded-2xl border border-line bg-surface p-7">
+                  <p className={`${eyebrow} text-accent`}>{c.tag}</p>
+                  <h3 className="mt-3 font-serif text-3xl tracking-tight">{c.name}</h3>
+                  <dl className="mt-5 space-y-4 text-[15px] leading-relaxed">
+                    <div>
+                      <dt className="font-semibold">Problem</dt>
+                      <dd className="mt-1 text-muted">{c.problem}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold">What I did</dt>
+                      <dd className="mt-1 text-muted">{c.approach}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-auto pt-6">
+                    <p className="text-sm font-semibold">{c.resultLabel}</p>
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {c.result.map((r) => (
+                        <li
+                          key={r}
+                          className="rounded-full border border-line px-3 py-1 text-sm text-muted"
+                        >
+                          {r}
+                        </li>
+                      ))}
+                    </ul>
+                    {c.link && (
+                      <a
+                        href={c.link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+                      >
+                        {c.link.label} <FiArrowUpRight aria-hidden />
+                      </a>
+                    )}
+                  </div>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* SKILLS */}
+        <section id="skills" className={`${container} py-16 md:py-24 print:py-3`}>
+          <SectionHeading
+            kicker="Skills"
+            title="A product toolkit with technical depth."
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 print:gap-2">
+            {skills.map((g, i) => (
+              <Reveal key={g.group} delay={i * 0.06} className="print-avoid-break">
+                <div className="h-full rounded-2xl border border-line bg-surface p-6 print:p-3">
+                  <h3 className="font-semibold tracking-tight">{g.group}</h3>
+                  <ul className="mt-4 flex flex-wrap gap-2 print:mt-2 print:gap-1">
+                    {g.items.map((s) => (
+                      <li
+                        key={s}
+                        className="rounded-full bg-bg px-3 py-1 text-sm text-muted ring-1 ring-line print:px-2 print:py-0.5"
+                      >
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* EDUCATION */}
+        <section id="education" className={`${container} py-16 md:py-24 print:py-3`}>
+          <SectionHeading kicker="Education" title="Business and engineering, formally." />
+          <div className="grid gap-10 md:grid-cols-3 print:grid-cols-3 print:gap-6">
+            <Reveal className="md:col-span-1">
+              <h3 className={`${eyebrow} text-muted`}>Degrees</h3>
+              <ul className="mt-4 space-y-5 print:mt-2 print:space-y-2">
+                {education.map((e) => (
+                  <li key={e.title}>
+                    <p className="font-semibold">{e.title}</p>
+                    <p className="text-muted">{e.school}</p>
+                    <p className="mt-1 text-sm tabular-nums text-muted">
+                      {e.period} · {e.note}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h3 className={`${eyebrow} text-muted`}>Certification</h3>
+              <ul className="mt-4 space-y-5 print:mt-2">
+                {certifications.map((c) => (
+                  <li key={c.title}>
+                    <p className="font-semibold">{c.title}</p>
+                    <p className="text-muted">{c.school}</p>
+                    <p className="mt-1 text-sm tabular-nums text-muted">{c.period}</p>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+            <Reveal delay={0.12}>
+              <h3 className={`${eyebrow} text-muted`}>Languages</h3>
+              <ul className="mt-4 space-y-3 print:mt-2 print:space-y-1">
+                {languages.map((l) => (
+                  <li key={l.name} className="flex justify-between gap-4 border-b border-line pb-3 print:pb-1">
+                    <span className="font-semibold">{l.name}</span>
+                    <span className="text-muted">{l.level}</span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* CONTACT */}
+        <section id="contact" className={`${container} pb-20 pt-8 md:pb-28 print:hidden`}>
+          <Reveal>
+            <div className="relative overflow-hidden rounded-3xl bg-ink px-6 py-14 text-bg md:px-14 md:py-20">
+              <p className={`${eyebrow} text-accent-soft`}>Let&apos;s talk</p>
+              <h2 className="mt-4 max-w-3xl font-serif text-4xl leading-[1.05] tracking-tight md:text-6xl">
+                Have a product problem <span className="italic">worth solving?</span>
+              </h2>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-bg/70">
+                I&apos;m open to Product Consultant, Product Manager, Product Marketing
+                and Product Strategy roles.
+              </p>
+              <div className="mt-9 flex flex-wrap gap-3">
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="inline-flex items-center gap-2 rounded-full bg-bg px-5 py-3 text-sm font-medium text-ink transition hover:opacity-90"
+                >
+                  <FiMail aria-hidden /> {profile.email}
+                </a>
+                <a
+                  href={profile.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-bg/25 px-5 py-3 text-sm font-medium transition hover:border-bg/60"
+                >
+                  <FaLinkedin aria-hidden /> Connect on LinkedIn
+                </a>
               </div>
             </div>
-          ))}
-        </div>
-      </motion.section>
+          </Reveal>
+        </section>
+      </main>
 
-      {/* FOOTER */}
-      <footer className="text-center mt-24 text-gray-500">
-        Crafted with Next.js • Tailwind • Framer Motion By Bhaskar Mamoria
+      <footer className="border-t border-line print:hidden">
+        <div className={`${container} flex flex-col gap-3 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between`}>
+          <p>© {new Date().getFullYear()} {profile.name} · Product Consultant · Jaipur, India</p>
+          <div className="flex gap-5">
+            <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-ink">
+              LinkedIn
+            </a>
+            <a href={profile.github} target="_blank" rel="noopener noreferrer" className="hover:text-ink">
+              GitHub
+            </a>
+            <a href={`mailto:${profile.email}`} className="hover:text-ink">
+              Email
+            </a>
+          </div>
+        </div>
       </footer>
-    </main>
+    </>
   );
 }
